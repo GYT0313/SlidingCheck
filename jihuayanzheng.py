@@ -8,8 +8,10 @@ from PIL import Image
 from selenium.webdriver import ActionChains
 from selenium.common.exceptions import TimeoutException
 import random
-"""
-使用极验滑动验证码的官网实验，若没有账号需要先注册
+
+"""[summary]
+
+使用极验滑动验证码的官网为例，若没有账号先注册。
 """
 EMAIL = '873560792@qq.com'
 PASSWORD = '密码'
@@ -29,57 +31,6 @@ class CrackGeetest():
     def __del__(self):
         self.browser.close()
 
-    def get_geetest_button(self):
-        """[summary]
-        
-        获取初始验证按钮
-        返回按钮对象
-        """
-        button = self.wait.until(EC.element_to_be_clickable((By.CLASS_NAME, 'geetest_radar_tip')))
-        return button
-
-    def get_position(self):
-        """[summary]
-        
-        获取验证码位置
-        返回验证码位置元组
-        """
-        img = self.wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'geetest_canvas_img')))
-        time.sleep(2)
-        location = img.location
-        size = img.size
-        top, bottom, left, right = location['y'], location['y'] + size['height'], location['x'], location['x'] + size['width']
-        return (top, bottom, left, right)
-
-    def get_screenshot(self):
-        """[summary]
-        
-        获取网页截图
-        """
-        screenshot = self.browser.get_screenshot_as_png()
-        screenshot = Image.open(BytesIO(screenshot))
-        return screenshot
-
-    def get_geetest_image(self, name='captcha.png'):
-        """[summary]
-        
-        获取验证码图片
-        返回图片对象
-        """
-        top, bottom, left, right = self.get_position()
-        screenshot = self.get_screenshot()
-        captcha = screenshot.crop((left, top, right, bottom))
-        captcha.save(name)
-        return captcha
-
-    def get_slider(self):
-        """[summary]
-        
-        获取滑块对象
-        """
-        slider = self.wait.until(EC.element_to_be_clickable((By.CLASS_NAME, 'geetest_slider_button')))
-        return slider
-
 
     def open(self):
         """[summary]
@@ -91,6 +42,63 @@ class CrackGeetest():
         password = self.wait.until(EC.presence_of_element_located((By.ID, 'password')))
         email.send_keys(self.email)
         password.send_keys(self.password)
+
+
+    def get_geetest_button(self):
+        """[summary]
+        
+        获取初始验证按钮
+        返回按钮对象
+        """
+        button = self.wait.until(EC.element_to_be_clickable((By.CLASS_NAME, 'geetest_radar_tip')))
+        return button
+
+
+    def get_position(self):
+        """[summary]
+        
+        获取验证码位置-为截取验证码准备
+        返回验证码位置元组
+        """
+        img = self.wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'geetest_canvas_img')))
+        time.sleep(2)
+        location = img.location
+        size = img.size
+        top, bottom, left, right = location['y'], location['y'] + size['height'], location['x'], location['x'] + size['width']
+        return (top, bottom, left, right)
+
+
+    def get_screenshot(self):
+        """[summary]
+        
+        获取网页截图
+        """
+        screenshot = self.browser.get_screenshot_as_png()
+        screenshot = Image.open(BytesIO(screenshot))
+        return screenshot
+
+
+    def get_geetest_image(self, name='captcha.png'):
+        """[summary]
+        
+        获取验证码图片
+        返回图片对象
+        """
+        top, bottom, left, right = self.get_position()
+        screenshot = self.get_screenshot()
+        # 通过验证码图片的位置从网页截图上截取验证码
+        captcha = screenshot.crop((left, top, right, bottom))
+        captcha.save(name)
+        return captcha
+
+
+    def get_slider(self):
+        """[summary]
+        
+        获取滑块对象
+        """
+        slider = self.wait.until(EC.element_to_be_clickable((By.CLASS_NAME, 'geetest_slider_button')))
+        return slider
 
 
     def get_track(self, distance):
@@ -131,19 +139,24 @@ class CrackGeetest():
             track.append(round(move, 2))
         return track
 
+
     def move_to_gap(self, slider, tracks):
         """[summary]
         
         拖动滑块到缺口处
+        动作： 点击且不释放鼠标-拖拽图片到缺口-释放鼠标
         
         Arguments:
             slider {[type]} -- 滑块
             tracks {[type]} -- 轨迹
         """
+        # 点击并按住滑块
         ActionChains(self.browser).click_and_hold(slider).perform()
+        # 移动
         for x in tracks:
             ActionChains(self.browser).move_by_offset(xoffset=x, yoffset=0).perform()
         time.sleep(0.1)
+        # 释放滑块
         ActionChains(self.browser).release().perform()
 
 
@@ -169,6 +182,7 @@ class CrackGeetest():
             button = self.browser.find_element_by_class_name('geetest_reset_tip_content')
             button.click()
 
+
     def is_success(self):
         """[summary]
         
@@ -179,6 +193,7 @@ class CrackGeetest():
         if text2 == '验证成功':
             return 1
         return 0
+
 
     def for_move(self, x_temp):
         """[summary]
@@ -204,6 +219,7 @@ class CrackGeetest():
                 break
         return flag
 
+
     def crack(self):
         """[summary]
         
@@ -228,7 +244,7 @@ class CrackGeetest():
                     flag = self.for_move(120)
                 if flag == 1:
                     break
-            
+
         except TimeoutException as e:
             self.crack()
         # 成功,登录
