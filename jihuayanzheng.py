@@ -10,7 +10,7 @@ from selenium.common.exceptions import TimeoutException
 import random
 
 EMAIL = '873560792@qq.com'
-PASSWORD = 'GYT3344179'
+PASSWORD = '密码'
 
 class CrackGeetest():
     """[summary]
