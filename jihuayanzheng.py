@@ -8,7 +8,9 @@ from PIL import Image
 from selenium.webdriver import ActionChains
 from selenium.common.exceptions import TimeoutException
 import random
-
+"""
+使用极验滑动验证码的官网实验，若没有账号需要先注册
+"""
 EMAIL = '873560792@qq.com'
 PASSWORD = '密码'
 
